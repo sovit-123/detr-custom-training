@@ -5,10 +5,17 @@ class DETRModel(nn.Module):
     def __init__(self, num_classes=1, model='detr_resnet50'):
         super(DETRModel, self).__init__()
         self.num_classes = num_classes
-        self.model = torch.hub.load('facebookresearch/detr', model, pretrained=True)
-        self.out = nn.Linear(in_features=self.model.class_embed.out_features, out_features=num_classes)
+        self.model = torch.hub.load(
+            'facebookresearch/detr', 
+            model, 
+            pretrained=True,
+        )
+        self.out = nn.Linear(
+            in_features=self.model.class_embed.out_features, 
+            out_features=num_classes
+        )
         
-    def forward(self,images):
+    def forward(self, images):
         d = self.model(images)
         d['pred_logits'] = self.out(d['pred_logits'])
         return d

@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import cv2
 import matplotlib.pyplot as plt
+import yaml
 
 plt.style.use('ggplot')
 
@@ -212,3 +213,29 @@ def set_infer_dir(dir_name=None):
         new_dir_name = f"outputs/inference/res_{next_dir_num}"
         os.makedirs(new_dir_name, exist_ok=True)
         return new_dir_name
+
+def load_weights(args, device, DETRModel, data_configs, NUM_CLASSES, CLASSES):
+    if args.weights is None:
+        # If the config file is still None, 
+        # then load the default one for COCO.
+        if data_configs is None:
+            with open(os.path.join('data', 'test_image_config.yaml')) as file:
+                data_configs = yaml.safe_load(file)
+            NUM_CLASSES = data_configs['NC']
+            CLASSES = data_configs['CLASSES']
+        model = torch.hub.load(
+            'facebookresearch/detr', 
+            'detr_resnet50', 
+            pretrained=True
+        )
+    if args.weights is not None:
+        ckpt = torch.load(args.weights, map_location=device)
+        # If config file is not provided, load from checkpoint.
+        if data_configs is None:
+            data_configs = True
+            NUM_CLASSES = ckpt['config']['NC']
+            CLASSES = ckpt['config']['CLASSES']
+        model = DETRModel(num_classes=NUM_CLASSES, model=args.model)
+        model.load_state_dict(ckpt['model_state_dict'])
+
+    return model, CLASSES
