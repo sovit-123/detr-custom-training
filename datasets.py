@@ -207,7 +207,7 @@ class CustomDataset(Dataset):
                     # '\n'
                 # )
                 self.log_annot_issue_x = False
-            xmax = xmin + 1
+            xmin = xmin - 1
         if ymax - ymin <= 1.0:
             if orig_data:
                 # print(
@@ -221,7 +221,7 @@ class CustomDataset(Dataset):
                 #     '\n'
                 # )
                 self.log_annot_issue_y = False
-            ymax = ymin + 1
+            ymin = ymin - 1
         return xmin, ymin, xmax, ymax
 
 
@@ -333,14 +333,17 @@ class CustomDataset(Dataset):
         target["orig_size"] = torch.as_tensor([int(h), int(w)])
         boxes = A.core.bbox_utils.normalize_bboxes(sample['bboxes'], rows=h, cols=w)
         boxes = np.array(boxes)
-        # boxes[:,2:] /= 2
-        boxes[:,:2] += boxes[:,2:] / 2
+        # Try-except block in case an image does not contains target boxes.
+        try:
+            boxes[:,:2] += boxes[:,2:] / 2
+        except:
+            pass
 
         target['boxes'] = torch.Tensor(boxes).to(torch.float)
         # Fix to enable training without target bounding boxes,
         # see https://discuss.pytorch.org/t/fasterrcnn-images-with-no-objects-present-cause-an-error/117974/4
-        # if np.isnan((target['boxes']).numpy()).any() or target['boxes'].shape == torch.Size([0]):
-        #     target['boxes'] = torch.zeros((0, 4), dtype=torch.float)
+        if np.isnan((target['boxes']).numpy()).any() or target['boxes'].shape == torch.Size([0]):
+            target['boxes'] = torch.zeros((0, 4), dtype=torch.float)
         return image_resized, target
 
     def __len__(self):
