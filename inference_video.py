@@ -11,7 +11,8 @@ import time
 from model import DETRModel
 from utils.general import (
     rescale_bboxes,
-    set_infer_dir
+    set_infer_dir,
+    load_weights
 )
 from utils.transforms import infer_transforms, resize
 
@@ -22,7 +23,6 @@ def parse_opt():
     parser.add_argument(
         '-w', 
         '--weights',
-        required=True
     )
     parser.add_argument(
         '-i', '--input', 
@@ -76,6 +76,9 @@ def read_return_video_data(video_path):
     return cap, frame_width, frame_height
 
 def main(args):
+    NUM_CLASSES = None
+    CLASSES = None
+    data_configs = None
     if args.data is not None:
         with open(args.data) as file:
             data_configs = yaml.safe_load(file)
@@ -84,12 +87,10 @@ def main(args):
     
     DEVICE = args.device
     OUT_DIR = set_infer_dir(args.name)
-    NUM_CLASSES = len(CLASSES) # Object classes + 1.
-    DEVICE = torch.device('cuda')
 
-    model = DETRModel(num_classes=NUM_CLASSES, model=args.model)
-    ckpt = torch.load(args.weights, map_location=DEVICE)
-    model.load_state_dict(ckpt['model_state_dict'])
+    model, CLASSES = load_weights(
+        args, DEVICE, DETRModel, data_configs, NUM_CLASSES, CLASSES
+    )
     _ = model.to(DEVICE).eval()
 
     # Colors for visualization.
