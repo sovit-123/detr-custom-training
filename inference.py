@@ -1,7 +1,6 @@
 import torch
 import cv2
 import numpy as np
-import albumentations as A
 import argparse
 import yaml
 import glob
@@ -10,11 +9,11 @@ import time
 
 from model import DETRModel
 from utils.general import (
-    rescale_bboxes,
     set_infer_dir,
     load_weights
 )
 from utils.transforms import infer_transforms, resize
+from utils.annotations import inference_annotations
 
 np.random.seed(2023)
 
@@ -63,6 +62,18 @@ def parse_opt():
         default=None, 
         type=str, 
         help='training result dir name in outputs/training/, (default res_#)'
+    )
+    parser.add_argument(
+        '--hide-labels',
+        dest='hide_labels',
+        action='store_true',
+        help='do not show labels during on top of bounding boxes'
+    )
+    parser.add_argument(
+        '--show', 
+        dest='show', 
+        action='store_true',
+        help='visualize output only if this argument is passed'
     )
     args = parser.parse_args()
     return args
@@ -140,36 +151,19 @@ def main(args):
         # Increment frame count.
         frame_count += 1
 
-        boxes = outputs['pred_boxes'][0].detach().cpu().numpy()
-        probas   = outputs['pred_logits'].softmax(-1).detach().cpu()[0, :, :-1]
-        keep = probas.max(-1).values > args.threshold
-        boxes = rescale_bboxes(outputs['pred_boxes'][0, keep].detach().cpu(), (w, h))
-        probas = probas[keep]
-
-        for i, box in enumerate(boxes):
-            label = int(probas[i].argmax())
-            class_name = CLASSES[label]
-            color = COLORS[CLASSES.index(class_name)]
-            xmin = int(box[0])
-            ymin = int(box[1])
-            xmax = int(box[2])
-            ymax = int(box[3])
-            cv2.rectangle(
+        if len(outputs['pred_boxes'][0]) != 0:
+            orig_image = inference_annotations(
+                outputs,
+                args.threshold,
+                CLASSES,
+                COLORS,
                 orig_image,
-                (xmin, ymin),
-                (xmax, ymax),
-                color, 
-                2
+                args
             )
-            cv2.putText(
-                orig_image,
-                text=class_name,
-                org=(xmin, ymin-5),
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                color=color,
-                thickness=2,
-                fontScale=1
-            )
+            if args.show:
+                cv2.imshow('Prediction', orig_image)
+                cv2.waitKey(1)
+            
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {image_num+1} done...")
         print('-'*50)
