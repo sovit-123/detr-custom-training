@@ -19,24 +19,26 @@ def resize(im, img_size=640, square=False):
 # Define the training tranforms
 def get_train_aug():
     return A.Compose([
-        A.MotionBlur(blur_limit=3, p=0.1),
         A.Blur(blur_limit=3, p=0.1),
-        A.RandomBrightnessContrast(
-            brightness_limit=0.2, p=0.1
-        ),
-        A.ColorJitter(p=0.1),
-        A.RandomGamma(p=0.2),
-        A.RandomFog(p=0.2),
+        A.MotionBlur(blur_limit=3, p=0.1),
         A.MedianBlur(blur_limit=3, p=0.1),
+        A.ToGray(p=0.1),
+        A.RandomBrightnessContrast(p=0.1),
+        A.ColorJitter(p=0.1),
+        A.RandomGamma(p=0.1),
         A.Normalize(max_pixel_value=1),
         ToTensorV2(p=1.0),
-    ], bbox_params=A.BboxParams(format='coco',min_area=0, min_visibility=0,label_fields=['labels']))
+    ], bbox_params=A.BboxParams(
+        format='coco', min_area=0, min_visibility=0,label_fields=['labels'])
+    )
 
 def get_train_transform():
     return A.Compose([
         A.Normalize(max_pixel_value=1),
         ToTensorV2(p=1.0),
-    ], bbox_params=A.BboxParams(format='coco',min_area=0, min_visibility=0,label_fields=['labels']))
+    ], bbox_params=A.BboxParams(
+        format='coco',min_area=0, min_visibility=0,label_fields=['labels'])
+    )
 
 def transform_mosaic(mosaic, boxes, img_size=640):
     """

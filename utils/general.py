@@ -138,12 +138,17 @@ def show_tranformed_image(train_loader, device, classes, colors):
 
             for box_num, box in enumerate(boxes):
                 x_c, y_c, w_norm, h_norm = box[0], box[1], box[2], box[3]
-                print(x_c, y_c, w_norm, h_norm)
-                xmin, ymin, xmax, ymax = [(x_c - 0.5 * w_norm), (y_c - 0.5 * h_norm),
-                                          (x_c + 0.5 * w_norm), (y_c + 0.5 * h_norm)]
-                xmin, ymin, xmax, ymax = xmin * sample.shape[1], ymin * sample.shape[0], xmax * sample.shape[1], ymax * sample.shape[0]
+                xmin, ymin, xmax, ymax = [
+                    (x_c - 0.5 * w_norm), (y_c - 0.5 * h_norm),
+                    (x_c + 0.5 * w_norm), (y_c + 0.5 * h_norm)
+                ]
+                xmin, ymin, xmax, ymax = (
+                    xmin * sample.shape[1], 
+                    ymin * sample.shape[0], 
+                    xmax * sample.shape[1], 
+                    ymax * sample.shape[0]
+                )
                 p1, p2 = (int(xmin), int(ymin)), (int(xmax), int(ymax))
-                print(p1, p2)
                 class_name = pred_classes[box_num]
                 color = colors[classes.index(class_name)]
                 cv2.rectangle(

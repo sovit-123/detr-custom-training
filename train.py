@@ -21,7 +21,8 @@ from utils.general import (
     init_seeds,
     set_training_dir,
     save_model_state,
-    save_mAP
+    save_mAP,
+    show_tranformed_image
 )
 
 RANK = int(os.getenv('RANK', -1))
@@ -102,6 +103,12 @@ def parse_opt():
         help='pass this to not to use mosaic augmentation'
     )
     parser.add_argument(
+        '-vt', '--vis-transformed', 
+        dest='vis_transformed', 
+        action='store_true',
+        help='visualize transformed images fed to the network'
+    )
+    parser.add_argument(
         '--seed',
         default=0,
         type=int ,
@@ -133,6 +140,7 @@ def main(args):
     BATCH_SIZE = args.batch
     IS_DISTRIBUTED = False
     NUM_WORKERS = args.workers
+    VISUALIZE_TRANSFORMED_IMAGES = args.vis_transformed
     OUT_DIR = set_training_dir(args.name)
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
     train_dataset = create_train_dataset(
@@ -172,6 +180,9 @@ def main(args):
     valid_loader = create_valid_loader(
         valid_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=valid_sampler
     )
+
+    if VISUALIZE_TRANSFORMED_IMAGES:
+        show_tranformed_image(train_loader, DEVICE, CLASSES, COLORS)
 
     lr_dict = {'backbone':0.1, 'transformer':1, 'embed':1, 'final': 5}
     matcher = HungarianMatcher()
