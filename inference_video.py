@@ -169,10 +169,11 @@ def main(args):
 
         else:
             break
-    # Release VideoCapture().
-    cap.release()
-    # Close all frames and video windows.
-    cv2.destroyAllWindows()
+    if args.show:
+        # Release VideoCapture().
+        cap.release()
+        # Close all frames and video windows.
+        cv2.destroyAllWindows()
 
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count

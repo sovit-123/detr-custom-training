@@ -167,12 +167,11 @@ def main(args):
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {image_num+1} done...")
         print('-'*50)
-        cv2.imshow('Image', orig_image)
-        cv2.waitKey(1)
 
     print('TEST PREDICTIONS COMPLETE')
-    cv2.destroyAllWindows()
-    # Calculate and print the average FPS.
+    if args.show:
+        cv2.destroyAllWindows()
+        # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
 
