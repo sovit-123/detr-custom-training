@@ -32,10 +32,13 @@ python train.py --epochs 100 --data data/custom_data.yaml --name custom_data
 python inference.py --input path/to/image
 ```
 
-* Using custom trained model
+* Using custom trained model (`--weights` should correspond to the correct `--model` )
 
 ```
-python inference.py --input path/to/image --weights outputs/training/custom_training/best_model.pth
+python inference.py --input path/to/image --weights outputs/training/custom_training/best_model.pth --model detr_resnet50
+																											detr_resnet50_dc5
+																											detr_resnet101
+																											detr_resnet101_dc5
 ```
 
 ## Inference on Videos
@@ -46,9 +49,12 @@ python inference.py --input path/to/image --weights outputs/training/custom_trai
 python inference_video.py --input path/to/video
 ```
 
-* Using custom trained model
+* sing custom trained model (`--weights` should correspond to the correct `--model` )
 
 ```
-python inference.py --input path/to/video --weights outputs/training/custom_training/best_model.pth
+python inference.py --input path/to/video --weights outputs/training/custom_training/best_model.pth --model detr_resnet50
+																											detr_resnet50_dc5
+																											detr_resnet101
+																											detr_resnet101_dc5
 ```
 

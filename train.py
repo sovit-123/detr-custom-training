@@ -41,7 +41,6 @@ def parse_opt():
         '--model', 
         default='detr_resnet50',
         help='name of the model',
-        choices=['detr_resnet50', 'detr_resnet101']
     )
     parser.add_argument(
         '--data', 
