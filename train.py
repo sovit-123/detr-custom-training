@@ -108,6 +108,13 @@ def parse_opt():
         help='visualize transformed images fed to the network'
     )
     parser.add_argument(
+        '-lr', 
+        '--learning-rate',
+        dest='learning_rate',
+        type=float,
+        default=0.00001
+    )
+    parser.add_argument(
         '--seed',
         default=0,
         type=int ,
@@ -131,7 +138,7 @@ def main(args):
     CLASSES = data_configs['CLASSES']
     NUM_CLASSES = data_configs['NC']
     NULL_CLASS_COEF = 0.5
-    LR = 0.00001
+    LR = args.learning_rate
     EPOCHS = args.epochs
     DEVICE = args.device
     NUM_CLASSES = len(CLASSES)
