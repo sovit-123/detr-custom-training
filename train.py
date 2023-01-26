@@ -112,20 +112,26 @@ def parse_opt():
         '--learning-rate',
         dest='learning_rate',
         type=float,
-        default=0.00001
+        default=1e-4
     )
     parser.add_argument(
         '-lrb',
         '--lr-backbone',
         dest='lr_backbone',
         type=float,
-        default=0.1
+        default=1e-5
+    )
+    parser.add_argument(
+        '--weight-decay',
+        dest='weight_decay',
+        default=1e-4,
+        type=float
     )
     parser.add_argument(
         '--seed',
         default=0,
         type=int ,
-        help='golabl seed for training'
+        help='global seed for training'
     )
     args = parser.parse_args()
     return args
@@ -197,14 +203,7 @@ def main(args):
     if VISUALIZE_TRANSFORMED_IMAGES:
         show_tranformed_image(train_loader, DEVICE, CLASSES, COLORS)
 
-    lr_dict = {
-        'backbone':args.lr_backbone, 
-        'transformer': 1, 
-        'embed': 1, 
-        'final': 5
-    }
-    matcher = HungarianMatcher()
-    # matcher = HungarianMatcher(cost_giou=2,cost_class=1,cost_bbox=5)
+    matcher = HungarianMatcher(cost_giou=2,cost_class=1,cost_bbox=5)
     weight_dict = {'loss_ce': 1, 'loss_bbox': 5, 'loss_giou': 2}
     losses = ['labels', 'boxes', 'cardinality']
     model = DETRModel(num_classes=NUM_CLASSES, model=args.model)
@@ -221,14 +220,19 @@ def main(args):
         total_trainable_params = sum(
             p.numel() for p in model.parameters() if p.requires_grad)
         print(f"{total_trainable_params:,} training parameters.")
-        criterion = SetCriterion(NUM_CLASSES-1, matcher, weight_dict, eos_coef=NULL_CLASS_COEF, losses=losses)
-        criterion = criterion.to(DEVICE)
 
-    optimizer = torch.optim.AdamW([{
-        'params': v,
-        'lr': lr_dict.get(k, 1)*LR
-    } for k,v in model.parameter_groups().items()], weight_decay=1e-4)
-    # optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-4)
+    criterion = SetCriterion(NUM_CLASSES-1, matcher, weight_dict, eos_coef=NULL_CLASS_COEF, losses=losses)
+    criterion = criterion.to(DEVICE)
+
+    param_dicts = [
+        {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+        {
+            "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+            "lr": args.lr_backbone,
+        },
+    ]
+    optimizer = torch.optim.AdamW(param_dicts, lr=args.learning_rate,
+                                  weight_decay=args.weight_decay)
     
     save_best_model = SaveBestModel()
 
