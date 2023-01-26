@@ -115,6 +115,13 @@ def parse_opt():
         default=0.00001
     )
     parser.add_argument(
+        '-lrb',
+        '--lr-backbone',
+        dest='lr_backbone',
+        type=float,
+        default=0.1
+    )
+    parser.add_argument(
         '--seed',
         default=0,
         type=int ,
@@ -190,7 +197,12 @@ def main(args):
     if VISUALIZE_TRANSFORMED_IMAGES:
         show_tranformed_image(train_loader, DEVICE, CLASSES, COLORS)
 
-    lr_dict = {'backbone':0.1, 'transformer':1, 'embed':1, 'final': 5}
+    lr_dict = {
+        'backbone':args.lr_backbone, 
+        'transformer': 1, 
+        'embed': 1, 
+        'final': 5
+    }
     matcher = HungarianMatcher()
     # matcher = HungarianMatcher(cost_giou=2,cost_class=1,cost_bbox=5)
     weight_dict = {'loss_ce': 1, 'loss_bbox': 5, 'loss_giou': 2}
