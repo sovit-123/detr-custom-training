@@ -112,7 +112,7 @@ def parse_opt():
         '--learning-rate',
         dest='learning_rate',
         type=float,
-        default=1e-5
+        default=5e-5
     )
     parser.add_argument(
         '-lrb',
@@ -236,28 +236,28 @@ def main(args):
     criterion = criterion.to(DEVICE)
 
     # TODO Check how this works when with model params differently in model.py
-    # lr_dict = {
-    #     'backbone': 0.1,
-    #     'transformer': 1,
-    #     'embed': 1,
-    #     'final': 5
-    # }
-    # optimizer = torch.optim.AdamW([{
-    #     'params': v,
-    #     'lr': lr_dict.get(k,1)*LR
-    # } for k,v in model.parameter_groups().items()], 
-    #     weight_decay=args.weight_decay
-    # )
+    lr_dict = {
+        'backbone': 0.1,
+        'transformer': 1,
+        'embed': 1,
+        'final': 5
+    }
+    optimizer = torch.optim.AdamW([{
+        'params': v,
+        'lr': lr_dict.get(k,1)*LR
+    } for k,v in model.parameter_groups().items()], 
+        weight_decay=args.weight_decay
+    )
 
-    param_dicts = [
-        {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
-        {
-            "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
-            "lr": args.lr_backbone,
-        },
-    ]
-    optimizer = torch.optim.AdamW(param_dicts, lr=args.learning_rate,
-                                  weight_decay=args.weight_decay)
+    # param_dicts = [
+    #     {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+    #     {
+    #         "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+    #         "lr": args.lr_backbone,
+    #     },
+    # ]
+    # optimizer = torch.optim.AdamW(param_dicts, lr=args.learning_rate,
+    #                               weight_decay=args.weight_decay)
     
     save_best_model = SaveBestModel()
 
