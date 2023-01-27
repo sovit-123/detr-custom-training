@@ -128,6 +128,12 @@ def parse_opt():
         type=float
     )
     parser.add_argument(
+        '--eos_coef',
+        default=0.1,
+        type=float,
+        help='relative classification weight of the no-object class'
+    )
+    parser.add_argument(
         '--seed',
         default=0,
         type=int ,
@@ -150,7 +156,6 @@ def main(args):
     VALID_DIR_LABELS = os.path.normpath(data_configs['VALID_DIR_LABELS'])
     CLASSES = data_configs['CLASSES']
     NUM_CLASSES = data_configs['NC']
-    NULL_CLASS_COEF = 0.5
     LR = args.learning_rate
     EPOCHS = args.epochs
     DEVICE = args.device
@@ -225,7 +230,7 @@ def main(args):
         NUM_CLASSES-1, 
         matcher, 
         weight_dict, 
-        eos_coef=NULL_CLASS_COEF, 
+        eos_coef=args.eos_coef, 
         losses=losses
     )
     criterion = criterion.to(DEVICE)
