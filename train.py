@@ -261,6 +261,8 @@ def main(args):
     
     save_best_model = SaveBestModel()
 
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, EPOCHS // 2)
+
     val_map_05 = []
     val_map = []
 
@@ -273,6 +275,7 @@ def main(args):
             DEVICE, 
             epoch=epoch
         )
+        lr_scheduler.step()
         stats, coco_evaluator = evaluate(
             model=model,
             criterion=criterion,
