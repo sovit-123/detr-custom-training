@@ -112,14 +112,14 @@ def parse_opt():
         '--learning-rate',
         dest='learning_rate',
         type=float,
-        default=1e-4
+        default=1e-5
     )
     parser.add_argument(
         '-lrb',
         '--lr-backbone',
         dest='lr_backbone',
         type=float,
-        default=1e-5
+        default=1e-6
     )
     parser.add_argument(
         '--weight-decay',
@@ -221,8 +221,28 @@ def main(args):
             p.numel() for p in model.parameters() if p.requires_grad)
         print(f"{total_trainable_params:,} training parameters.")
 
-    criterion = SetCriterion(NUM_CLASSES-1, matcher, weight_dict, eos_coef=NULL_CLASS_COEF, losses=losses)
+    criterion = SetCriterion(
+        NUM_CLASSES-1, 
+        matcher, 
+        weight_dict, 
+        eos_coef=NULL_CLASS_COEF, 
+        losses=losses
+    )
     criterion = criterion.to(DEVICE)
+
+    # TODO Check how this works when with model params differently in model.py
+    # lr_dict = {
+    #     'backbone': 0.1,
+    #     'transformer': 1,
+    #     'embed': 1,
+    #     'final': 5
+    # }
+    # optimizer = torch.optim.AdamW([{
+    #     'params': v,
+    #     'lr': lr_dict.get(k,1)*LR
+    # } for k,v in model.parameter_groups().items()], 
+    #     weight_decay=args.weight_decay
+    # )
 
     param_dicts = [
         {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
