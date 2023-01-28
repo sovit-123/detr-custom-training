@@ -261,7 +261,9 @@ def main(args):
     
     save_best_model = SaveBestModel()
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, EPOCHS // 2)
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, [EPOCHS // 2, EPOCHS // 1.333], gamma=0.5
+    )
 
     val_map_05 = []
     val_map = []
