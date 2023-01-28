@@ -112,7 +112,7 @@ def parse_opt():
         '--learning-rate',
         dest='learning_rate',
         type=float,
-        default=1e-5
+        default=5e-5
     )
     parser.add_argument(
         '-lrb',
@@ -126,6 +126,12 @@ def parse_opt():
         dest='weight_decay',
         default=1e-4,
         type=float
+    )
+    parser.add_argument(
+        '--eos_coef',
+        default=0.1,
+        type=float,
+        help='relative classification weight of the no-object class'
     )
     parser.add_argument(
         '--seed',
@@ -150,7 +156,6 @@ def main(args):
     VALID_DIR_LABELS = os.path.normpath(data_configs['VALID_DIR_LABELS'])
     CLASSES = data_configs['CLASSES']
     NUM_CLASSES = data_configs['NC']
-    NULL_CLASS_COEF = 0.5
     LR = args.learning_rate
     EPOCHS = args.epochs
     DEVICE = args.device
@@ -225,36 +230,40 @@ def main(args):
         NUM_CLASSES-1, 
         matcher, 
         weight_dict, 
-        eos_coef=NULL_CLASS_COEF, 
+        eos_coef=args.eos_coef, 
         losses=losses
     )
     criterion = criterion.to(DEVICE)
 
     # TODO Check how this works when with model params differently in model.py
-    # lr_dict = {
-    #     'backbone': 0.1,
-    #     'transformer': 1,
-    #     'embed': 1,
-    #     'final': 5
-    # }
-    # optimizer = torch.optim.AdamW([{
-    #     'params': v,
-    #     'lr': lr_dict.get(k,1)*LR
-    # } for k,v in model.parameter_groups().items()], 
-    #     weight_decay=args.weight_decay
-    # )
+    lr_dict = {
+        'backbone': 0.1,
+        'transformer': 1,
+        'embed': 1,
+        'final': 5
+    }
+    optimizer = torch.optim.AdamW([{
+        'params': v,
+        'lr': lr_dict.get(k,1)*LR
+    } for k,v in model.parameter_groups().items()], 
+        weight_decay=args.weight_decay
+    )
 
-    param_dicts = [
-        {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
-        {
-            "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
-            "lr": args.lr_backbone,
-        },
-    ]
-    optimizer = torch.optim.AdamW(param_dicts, lr=args.learning_rate,
-                                  weight_decay=args.weight_decay)
+    # param_dicts = [
+    #     {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+    #     {
+    #         "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+    #         "lr": args.lr_backbone,
+    #     },
+    # ]
+    # optimizer = torch.optim.AdamW(param_dicts, lr=args.learning_rate,
+    #                               weight_decay=args.weight_decay)
     
     save_best_model = SaveBestModel()
+
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, [EPOCHS // 2, EPOCHS // 1.333], gamma=0.5
+    )
 
     val_map_05 = []
     val_map = []
@@ -268,6 +277,7 @@ def main(args):
             DEVICE, 
             epoch=epoch
         )
+        lr_scheduler.step()
         stats, coco_evaluator = evaluate(
             model=model,
             criterion=criterion,
