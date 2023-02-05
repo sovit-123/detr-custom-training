@@ -36,9 +36,9 @@ python inference.py --input path/to/image
 
 ```
 python inference.py --input path/to/image --weights outputs/training/custom_training/best_model.pth --model detr_resnet50
-																											detr_resnet50_dc5
-																											detr_resnet101
-																											detr_resnet101_dc5
+                                                                                                            detr_resnet50_dc5
+                                                                                                            detr_resnet101
+                                                                                                            detr_resnet101_dc5
 ```
 
 ## Inference on Videos
@@ -53,8 +53,8 @@ python inference_video.py --input path/to/video
 
 ```
 python inference.py --input path/to/video --weights outputs/training/custom_training/best_model.pth --model detr_resnet50
-																											detr_resnet50_dc5
-																											detr_resnet101
-																											detr_resnet101_dc5
+                                                                                                            detr_resnet50_dc5
+                                                                                                            detr_resnet101
+                                                                                                            detr_resnet101_dc5
 ```
 
